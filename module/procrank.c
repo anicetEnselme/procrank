@@ -14,7 +14,7 @@ static int procinfo_proc_show(struct seq_file *m, void *v)
 	/////////// CODE EXAMPLE
 	for_each_process(p) // Traverse all processes
 	{	
-		seq_printf(m, "PID: %u\n", p->pid);	// print PID
+		seq_printf(m, "Process_NAME: %s ===> PID: %u\n", p->comm, p->pid);	// print PID
 		nr_process += 1;					
 	}
 	seq_printf(m, "number of process: %d\n", nr_process);	// print number of process
