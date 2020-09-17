@@ -26,14 +26,14 @@ static int procinfo_proc_show(struct seq_file *m, void *v)
 static int __init procrank_init(void)
 {
 	proc_create_single("procrank", 0, NULL, procinfo_proc_show); // create proc file
-    printk("init procrank ID:your student ID\n");
+    printk("Welcome Anicet\n");
 	return 0;
 }
 
 static void __exit procrank_exit(void)
 {
 	remove_proc_entry("procrank", NULL);	// delete proc file
-	printk("exit procrank ID:your student ID\n");
+	printk("Good bye Anicet!\n");
 }
 
 module_init(procrank_init);
