@@ -17,25 +17,30 @@ static int procinfo_proc_show(struct seq_file *m, void *v)
 	int nr_process = 0;
 	int test = 0;
 
-	test = emery();
+	//test = emery();
 	for_each_process(p) // Traverse all processes
 	{	
 
-		//struct vm_area_struct *vma;
+		struct vm_area_struct *vma;
+		u64 pss;
 		
-
-		seq_printf(m, "Process_NAME: %s ===> PID: %u\n", p->comm, p->pid);	// print PID
-
-	/*	for (vma = p->mm->mmap; vma ; vma = vma->vm_next)
+		printk(KERN_INFO "Iteration \"%d\" \n", test);
+		seq_printf(m, "Process_NAME: %s 		 ===> PID: %u\n", p->comm, p->pid);	// print PID
+        printk(KERN_INFO "I am here");
+        if(p->mm)
+		for (vma = p->mm->mmap; vma ; vma = vma->vm_next)
 		{
-		
-		}*/
-
-		//seq_printf(m, "Rss : %f  PSS : %f \n", mss->resident, mss->pss >> PSS_SHIFT);
+			printk(KERN_INFO "I am here 2 ");
+			pss = gather_procrank(vma);
+			printk(KERN_INFO "I am here 3");
+			seq_printf(m, "PSS : %lld ", pss);
+			printk(KERN_INFO "Je suis apres le seq_printf");
+		}
+		printk(KERN_INFO "I am here4");
 
 		nr_process += 1;					
 	}
-	seq_printf(m, "number of process: %d\n Test number : %d\n", nr_process, test);	// print number of process
+	seq_printf(m, "number of process: %d\n", nr_process);	// print number of process
 	/////////////////////////
 
 	return 0;
