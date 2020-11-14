@@ -5,7 +5,11 @@
 #include <linux/kernel.h>
 #include <linux/sched/signal.h>
 #include <linux/mm.h>
-#include <linux/poll.h>
+//#include <linux/poll.h>
+
+//#include "internal.h"
+
+#define PSS_SHIFT 12
 
 /*
 	
@@ -14,41 +18,57 @@
 static int procinfo_proc_show(struct seq_file *m, void *v)
 {
 	struct task_struct *p; 
+	struct vm_area_struct *vma;
+	struct mem_size_stats mss;
+	unsigned long vss, uss, shared;
+	u64 pss;
 	int nr_process = 0;
+
+	memset(&mss, 0, sizeof(mss));
+
 	//int test = 0;
 
 	//test = emery();
+	seq_printf(m, "-------------------------------------------------------------------\n");
+	seq_printf(m, "%5s %17s %10s %10s %10s %10s\n", "PID", " | Process_NAME", " | VSS", " | RSS", " | USS", " | 	PSS"); 
+	seq_printf(m, "-------------------------------------------------------------------\n");	
 	for_each_process(p) // Traverse all processes
 	{	
-
-		struct vm_area_struct *vma;
-		u64 pss;
 		
+
 		printk(KERN_INFO "Iteration \"%d\" \n", nr_process);
-		seq_printf(m, "NAME: %s, PID: %u", p->comm, p->pid);	// print PID
         printk(KERN_INFO "I am here");
-        if (nr_process == 1)
+        /*if (nr_process == 1)
         {
-        	printk(KERN_INFO "J'arrive au moins a 1");
-        }
+        	break;
+        }*/
+       // seq_printf(m, "NAME: %s, PID: %u", p->comm, p->pid);	// print PID
+
+        vss=0, uss=0, pss=0, shared=0;
+
         if(p->mm){
+        //seq_printf(m, "VSS: %ld", p->mm->mmap->vm_end - p->mm->mmap->vm_start);	// print PID
 			for (vma = p->mm->mmap; vma ; vma = vma->vm_next)
 			{
-				printk(KERN_INFO "I am here 2 ");
-				pss = gather_procrank(vma);
-				printk(KERN_INFO "I am here 3");
-				printk(KERN_INFO "Je suis apres le seq_printf");
+				smap_gather_stats(vma, &mss);
+				vss += vma->vm_end - vma->vm_start;
+				//seq_printf(m, " PSS : %lld, rss: %ld", mss.my_pss, mss.rss);
 			}
-			printk(KERN_INFO "I am here4");
-			seq_printf(m, " PSS : %lld \n", pss);
-
+			//printk(KERN_INFO "I am here4");
+			//seq_printf(m, "\n");	// print PID
+			//seq_printf(m, " PSS : %lld \n", mss.my_pss);
+			shared = mss.shared_clean + mss.shared_dirty;
+			uss = mss.resident - shared;
+			pss = mss.pss>>PSS_SHIFT;
+			seq_printf(m, "%5d %17s %10ldK %10ldK %10ldK %10lldK \n", p->pid, p->comm, vss>>(PAGE_SHIFT-10), mss.resident>>(PAGE_SHIFT-10), uss>>(PAGE_SHIFT-10), pss>>(PAGE_SHIFT-10)); 
+			// seq_put_decimal_ull_width(m,"%10ldK",vss>>(PAGE_SHIFT-10),8);
+			// seq_put_decimal_ull_width(m," %10ldK",mss.rss>>(PAGE_SHIFT-10),8);
+			// seq_put_decimal_ull_width(m,"%10dK", 0,8);
+			// seq_put_decimal_ull_width(m,"%10lldK \n",pss>>(PAGE_SHIFT-10),8);
 			nr_process += 1;					
 		}
-		else{
-			seq_printf(m, " PSS zero : %d \n", 0);
 
-		}    	
-    }
+	}   	
 	seq_printf(m, "number of process: %d\n", nr_process);	// print number of process
 	/////////////////////////
 
