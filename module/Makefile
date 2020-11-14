@@ -1,4 +1,4 @@
-obj-m = procrank.o
+obj-m += procrank.o
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
